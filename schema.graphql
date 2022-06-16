@@ -133,6 +133,7 @@ type Pool @entity {
   liquidityProviderCount: BigInt! # used to detect new exchanges
   # hourly snapshots of pool data
   poolHourData: [PoolHourData!]! @derivedFrom(field: "pool")
+  poolMinuteData: [PoolMinuteData!]! @derivedFrom(field: "pool")
   # daily snapshots of pool data
   poolDayData: [PoolDayData!]! @derivedFrom(field: "pool")
   # derived fields
@@ -495,6 +496,54 @@ type PoolDayData @entity {
   close: BigDecimal!
 }
 
+# minute stats tracker for pool
+type PoolMinuteData @entity {
+  # format: <pool address>-<timestamp>
+  id: ID!
+  # unix timestamp for start of hour
+  periodStartUnix: Int!
+  # pointer to pool
+  pool: Pool!
+  # token0 derived from pool
+  token0: Token!
+  # token1 derived from pool
+  token1: Token!
+  # in range liquidity at end of period
+  liquidity: BigInt!
+  # current price tracker at end of period
+  sqrtPrice: BigInt!
+  # price of token0 - derived from sqrtPrice
+  token0Price: BigDecimal!
+  # price of token1 - derived from sqrtPrice
+  token1Price: BigDecimal!
+  # current tick at end of period
+  tick: BigInt
+  # tracker for global fee growth
+  feeGrowthGlobal0X128: BigInt!
+  # tracker for global fee growth
+  feeGrowthGlobal1X128: BigInt!
+  # tvl derived in USD at end of period
+  tvlUSD: BigDecimal!
+  # volume in token0
+  volumeToken0: BigDecimal!
+  # volume in token1
+  volumeToken1: BigDecimal!
+  # volume in USD
+  volumeUSD: BigDecimal!
+  # fees in USD
+  feesUSD: BigDecimal!
+  # numebr of transactions during period
+  txCount: BigInt!
+  # opening price of token0
+  open: BigDecimal!
+  # high price of token0
+  high: BigDecimal!
+  # low price of token0
+  low: BigDecimal!
+  # close price of token0
+  close: BigDecimal!
+}
+
 # hourly stats tracker for pool
 type PoolHourData @entity {
   # format: <pool address>-<timestamp>
@@ -503,6 +552,10 @@ type PoolHourData @entity {
   periodStartUnix: Int!
   # pointer to pool
   pool: Pool!
+  # token0 derived from pool
+  token0: Token!
+  # token1 derived from pool
+  token1: Token!
   # in range liquidity at end of period
   liquidity: BigInt!
   # current price tracker at end of period

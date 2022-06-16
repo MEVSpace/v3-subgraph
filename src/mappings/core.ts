@@ -15,6 +15,7 @@ import { findEthPerToken, getEthPriceInUSD, getTrackedAmountUSD, sqrtPriceX96ToT
 import {
   updatePoolDayData,
   updatePoolHourData,
+  updatePoolMinuteData,
   updateTickDayData,
   updateTokenDayData,
   updateTokenHourData,
@@ -40,6 +41,7 @@ export function handleInitialize(event: Initialize): void {
 
   updatePoolDayData(event)
   updatePoolHourData(event)
+  updatePoolMinuteData(event)
 
   // update token prices
   token0.derivedETH = findEthPerToken(token0 as Token)
@@ -151,6 +153,7 @@ export function handleMint(event: MintEvent): void {
   updateUniswapDayData(event)
   updatePoolDayData(event)
   updatePoolHourData(event)
+  updatePoolMinuteData(event)
   updateTokenDayData(token0 as Token, event)
   updateTokenDayData(token1 as Token, event)
   updateTokenHourData(token0 as Token, event)
@@ -253,6 +256,7 @@ export function handleBurn(event: BurnEvent): void {
   updateUniswapDayData(event)
   updatePoolDayData(event)
   updatePoolHourData(event)
+  updatePoolMinuteData(event)
   updateTokenDayData(token0 as Token, event)
   updateTokenDayData(token1 as Token, event)
   updateTokenHourData(token0 as Token, event)
@@ -409,6 +413,7 @@ export function handleSwap(event: SwapEvent): void {
   let uniswapDayData = updateUniswapDayData(event)
   let poolDayData = updatePoolDayData(event)
   let poolHourData = updatePoolHourData(event)
+  let poolMinuteData = updatePoolMinuteData(event)
   let token0DayData = updateTokenDayData(token0 as Token, event)
   let token1DayData = updateTokenDayData(token1 as Token, event)
   let token0HourData = updateTokenHourData(token0 as Token, event)
@@ -428,6 +433,11 @@ export function handleSwap(event: SwapEvent): void {
   poolHourData.volumeToken0 = poolHourData.volumeToken0.plus(amount0Abs)
   poolHourData.volumeToken1 = poolHourData.volumeToken1.plus(amount1Abs)
   poolHourData.feesUSD = poolHourData.feesUSD.plus(feesUSD)
+
+  poolMinuteData.volumeUSD = poolMinuteData.volumeUSD.plus(amountTotalUSDTracked)
+  poolMinuteData.volumeToken0 = poolMinuteData.volumeToken0.plus(amount0Abs)
+  poolMinuteData.volumeToken1 = poolMinuteData.volumeToken1.plus(amount1Abs)
+  poolMinuteData.feesUSD = poolMinuteData.feesUSD.plus(feesUSD)
 
   token0DayData.volume = token0DayData.volume.plus(amount0Abs)
   token0DayData.volumeUSD = token0DayData.volumeUSD.plus(amountTotalUSDTracked)
@@ -457,6 +467,7 @@ export function handleSwap(event: SwapEvent): void {
   token0HourData.save()
   token1HourData.save()
   poolHourData.save()
+  poolMinuteData.save()
   factory.save()
   pool.save()
   token0.save()

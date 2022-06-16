@@ -11,7 +11,8 @@ import {
   Bundle,
   PoolHourData,
   TickDayData,
-  Tick
+  Tick,
+  PoolMinuteData
 } from './../types/schema'
 import { FACTORY_ADDRESS } from './constants'
 import { ethereum } from '@graphprotocol/graph-ts'
@@ -89,6 +90,59 @@ export function updatePoolDayData(event: ethereum.Event): PoolDayData {
   return poolDayData as PoolDayData
 }
 
+export function updatePoolMinuteData(event: ethereum.Event): PoolMinuteData {
+  let timestamp = event.block.timestamp.toI32()
+  let minuteIndex = timestamp / 60 // get unique minute within unix history
+  let minuteStartUnix = minuteIndex * 60 // want the rounded effect
+  let minutePoolID = event.address
+    .toHexString()
+    .concat('-m')
+    .concat(minuteIndex.toString())
+  let pool = Pool.load(event.address.toHexString())
+  let poolMinuteData = PoolMinuteData.load(minutePoolID)
+  if (poolMinuteData === null) {
+    poolMinuteData = new PoolMinuteData(minutePoolID)
+    poolMinuteData.periodStartUnix = minuteStartUnix
+    poolMinuteData.pool = pool.id
+    poolMinuteData.token0 = pool.token0
+    poolMinuteData.token1 = pool.token1
+    // things that dont get initialized always
+    poolMinuteData.volumeToken0 = ZERO_BD
+    poolMinuteData.volumeToken1 = ZERO_BD
+    poolMinuteData.volumeUSD = ZERO_BD
+    poolMinuteData.txCount = ZERO_BI
+    poolMinuteData.feesUSD = ZERO_BD
+    poolMinuteData.feeGrowthGlobal0X128 = ZERO_BI
+    poolMinuteData.feeGrowthGlobal1X128 = ZERO_BI
+    poolMinuteData.open = pool.token0Price
+    poolMinuteData.high = pool.token0Price
+    poolMinuteData.low = pool.token0Price
+    poolMinuteData.close = pool.token0Price
+  }
+
+  if (pool.token0Price.gt(poolMinuteData.high)) {
+    poolMinuteData.high = pool.token0Price
+  }
+  if (pool.token0Price.lt(poolMinuteData.low)) {
+    poolMinuteData.low = pool.token0Price
+  }
+
+  poolMinuteData.liquidity = pool.liquidity
+  poolMinuteData.sqrtPrice = pool.sqrtPrice
+  poolMinuteData.token0Price = pool.token0Price
+  poolMinuteData.token1Price = pool.token1Price
+  poolMinuteData.feeGrowthGlobal0X128 = pool.feeGrowthGlobal0X128
+  poolMinuteData.feeGrowthGlobal1X128 = pool.feeGrowthGlobal1X128
+  poolMinuteData.close = pool.token0Price
+  poolMinuteData.tick = pool.tick
+  poolMinuteData.tvlUSD = pool.totalValueLockedUSD
+  poolMinuteData.txCount = poolMinuteData.txCount.plus(ONE_BI)
+  poolMinuteData.save()
+
+  // test
+  return poolMinuteData as PoolMinuteData
+}
+
 export function updatePoolHourData(event: ethereum.Event): PoolHourData {
   let timestamp = event.block.timestamp.toI32()
   let hourIndex = timestamp / 3600 // get unique hour within unix history
@@ -104,6 +158,8 @@ export function updatePoolHourData(event: ethereum.Event): PoolHourData {
     poolHourData.periodStartUnix = hourStartUnix
     poolHourData.pool = pool.id
     // things that dont get initialized always
+    poolHourData.token0 = pool.token0
+    poolHourData.token1 = pool.token1
     poolHourData.volumeToken0 = ZERO_BD
     poolHourData.volumeToken1 = ZERO_BD
     poolHourData.volumeUSD = ZERO_BD
