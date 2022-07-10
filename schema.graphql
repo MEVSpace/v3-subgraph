@@ -133,7 +133,7 @@ type Pool @entity {
   liquidityProviderCount: BigInt! # used to detect new exchanges
   # hourly snapshots of pool data
   poolHourData: [PoolHourData!]! @derivedFrom(field: "pool")
-  poolMinuteData: [PoolMinuteData!]! @derivedFrom(field: "pool")
+  pool15MinutesData: [Pool15MinutesData!]! @derivedFrom(field: "pool")
   # daily snapshots of pool data
   poolDayData: [PoolDayData!]! @derivedFrom(field: "pool")
   # derived fields
@@ -497,17 +497,17 @@ type PoolDayData @entity {
 }
 
 # minute stats tracker for pool
-type PoolMinuteData @entity {
+type Pool15MinutesData @entity {
   # format: <pool address>-<timestamp>
   id: ID!
   # unix timestamp for start of hour
   periodStartUnix: Int!
-  # pointer to pool
-  pool: Pool!
   # token0 derived from pool
   token0: Token!
   # token1 derived from pool
   token1: Token!
+  # pointer to pool
+  pool: Pool!
   # in range liquidity at end of period
   liquidity: BigInt!
   # current price tracker at end of period
@@ -552,10 +552,6 @@ type PoolHourData @entity {
   periodStartUnix: Int!
   # pointer to pool
   pool: Pool!
-  # token0 derived from pool
-  token0: Token!
-  # token1 derived from pool
-  token1: Token!
   # in range liquidity at end of period
   liquidity: BigInt!
   # current price tracker at end of period
